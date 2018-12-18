@@ -3,6 +3,8 @@ package Asgmt1_WordNet;
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.Queue;
 
+import java.util.Iterator;
+
 public class DeluxeBFS {
     private static final int INFINITY = Integer.MAX_VALUE;
     private final Digraph digraph;
@@ -21,7 +23,7 @@ public class DeluxeBFS {
         pathQueue = new Queue<>();
     }
 
-    public Iterable<Integer> iterator(){
+    public Iterable<Integer> path(){
         return pathQueue;
     }
 
@@ -76,8 +78,8 @@ public class DeluxeBFS {
 
     }
 
-    public void clear(){
-        if (!pathQueue.isEmpty()){
+    private void clear(){
+        while (!pathQueue.isEmpty()){
             int v = pathQueue.dequeue();
             marked[v] = false;
             distTo[v] = INFINITY;
