@@ -1,13 +1,15 @@
 package Asgmt1_WordNet;
 
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.Bag;
+import edu.princeton.cs.algs4.Digraph;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
 
 /**
  * The {@code SAP} class represents a shortest ancestral path
  * between two vertex(vertices) <em>pathV</em> and <em>pathW</em>.
  */
 public class SAP {
-    private final Digraph G;
     private final DeluxeBFS vcache, wcache;
 
     /**
@@ -17,9 +19,9 @@ public class SAP {
      */
     public SAP(Digraph G) {
 
-        this.G = new Digraph(G);
-        vcache = new DeluxeBFS(this.G);
-        wcache = new DeluxeBFS(this.G);
+        Digraph g = new Digraph(G);
+        vcache = new DeluxeBFS(g);
+        wcache = new DeluxeBFS(g);
     }
 
     /**

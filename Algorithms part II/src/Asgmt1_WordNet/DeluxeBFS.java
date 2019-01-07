@@ -3,8 +3,6 @@ package Asgmt1_WordNet;
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.Queue;
 
-import java.util.Iterator;
-
 public class DeluxeBFS {
     private static final int INFINITY = Integer.MAX_VALUE;
     private final Digraph digraph;
