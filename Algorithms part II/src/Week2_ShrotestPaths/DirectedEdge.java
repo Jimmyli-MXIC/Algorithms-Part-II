@@ -30,4 +30,8 @@ public class DirectedEdge implements Comparable<DirectedEdge>{
         else if (this.weight > that.weight) return +1;
         else return 0;
     }
+
+    public String toString() {
+        return v + "->" + w + " " + String.format("%5.2f", weight);
+    }
 }
