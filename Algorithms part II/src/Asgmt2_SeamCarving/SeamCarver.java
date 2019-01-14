@@ -6,9 +6,8 @@ public class SeamCarver {
 
     private Picture picture;
     private double[][] energy;
-    private double[][] distTo;
-    private int[][] pathTo;
-    private int width, height;
+    private double[] distTo;
+    private int[] pathTo;
 
     /**
      * Create a seam carver object based on the given picture
@@ -17,19 +16,6 @@ public class SeamCarver {
      */
     public SeamCarver(Picture picture) {
         this.picture = new Picture(picture);
-        this.distTo = new double[width][height];
-        this.pathTo = new int[width][height];
-
-        this.width = this.picture.width();
-        this.height = this.picture.height();
-
-
-        energy = new double[this.width][this.height];
-
-        /* Compute the energy of every pixel */
-        for (int x = 0; x < this.width; x++)
-            for (int y = 0; y < this.height; y++)
-                energy[x][y] = computeEnergy(x, y);
     }
 
     /**
@@ -47,7 +33,7 @@ public class SeamCarver {
      * @return
      */
     public int width() {
-        return width;
+        return picture.width();
     }
 
     /**
@@ -56,7 +42,7 @@ public class SeamCarver {
      * @return
      */
     public int height() {
-        return height;
+        return picture.height();
     }
 
     /**
@@ -67,14 +53,17 @@ public class SeamCarver {
      * @return
      */
     public double energy(int x, int y) {
-        if ((x < 0 && x > width - 1) || (y < 0 && y > height - 1))
+        if ((x < 0 && x > width() - 1) || (y < 0 && y > height() - 1))
             throw new IllegalArgumentException("x or y is outside its prescribed range");
-        return energy[x][y];
+        return computeEnergy(x, y, false);
 
     }
 
-    private double computeEnergy(int x, int y) {
-        if ((x == 0 || x == width - 1) || ((y == 0 || y == height - 1)))
+    private double computeEnergy(int x, int y, boolean transposed) {
+        if (transposed)
+            return computeEnergy(y, x, false);
+
+        if (x == 0 || x == width() - 1 || y == 0 || y == height() - 1)
             return 1000.00;
 
         int[] rgbL = extractRGB(picture.getRGB(x - 1, y));
@@ -107,9 +96,18 @@ public class SeamCarver {
      * @return
      */
     public int[] findHorizontalSeam() {
-        //  TODO
-        double transposeEnergy = new
-        return null;
+
+        energy = new double[height()][width()];
+        for (int row = 0; row < width(); row++)
+            for (int col = 0; col < height(); col++)
+                energy[row][col] = computeEnergy(row, col, true);
+
+        return getSeam();
+
+    }
+
+    private int position(int col, int row) {
+        return row * energy[0].length + col;
     }
 
     /**
@@ -119,45 +117,75 @@ public class SeamCarver {
      */
     public int[] findVerticalSeam() {
 
+        energy = new double[height()][width()];
+        for (int row = 0; row < height(); row++)
+            for (int col = 0; col < width(); col++)
+                energy[row][col] = computeEnergy(col, row, false);
 
-        /* Initialize the distance array */
-        for (int i = 0; i < width; i++) {
-            distTo[i][0] = 1000.00;
-        }
-        for (int y = 1; y < height; y++)
-            for (int x = 0; x < width; x++)
-                distTo[x][y] = Double.POSITIVE_INFINITY;
-
-
-        for (int y = 0; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
-                relax(x, y, x - 1, y + 1);
-                relax(x, y, x, y + 1);
-                relax(x, y, x + 1, y + 1);
-            }
-        }
-        double minimumEnergy = Double.POSITIVE_INFINITY;
-        int bottomSeam = 0;
-        for (int i = 0; i < width(); i++){
-            if (distTo[i][height()-1] < minimumEnergy){
-                minimumEnergy = distTo[i][height()-1];
-                bottomSeam = i;
-            }
-        }
-        int[] seamPath = new int[height()];
-        seamPath[height()-1] = bottomSeam;
-        for (int y = height()-1; y > 0; y--){
-           seamPath[y-1] = pathTo[seamPath[y]][y];
-        }
-        return seamPath;
+        return getSeam();
 
 
     }
 
-    private void relax(int xFrom, int yFrom, int xTo, int yTo) {
-        if (distTo[xTo][yTo] > distTo[xFrom][yFrom] + energy[xTo][yTo]){
-            distTo[xTo][yTo] = distTo[xFrom][yFrom] + energy[xTo][yTo];
-            pathTo[xTo][yTo] = xFrom;
+    private int[] getSeam() {
+        int tmpHeight = energy.length;
+        int tmpWidth = energy[0].length;
+        int size = tmpHeight * tmpWidth;
+
+//        energy = new double[size];
+        distTo = new double[size];
+        pathTo = new int[size];
+
+        for (int row = 0; row < tmpHeight; row++) {
+            for (int col = 0; col < tmpWidth; col++) {
+                int p = position(col, row);
+
+                if (row == 0)
+                    distTo[p] = 1000.00;
+                else
+                    distTo[p] = Double.POSITIVE_INFINITY;
+//                energy[p] = computeEnergy(col, row, transpose);
+                pathTo[p] = -1;
+            }
+        }
+
+        for (int row = 0; row < tmpHeight - 1; row++) {
+            for (int col = 1; col < tmpWidth - 1; col++) {
+                int p = position(col, row);
+                relax(p, col - 1, row + 1);
+                relax(p, col, row + 1);
+                relax(p, col + 1, row + 1);
+            }
+        }
+
+        double minimumEnergy = Double.POSITIVE_INFINITY;
+        int bottomSeam = 0;
+        for (int col = 0; col < tmpWidth; col++) {
+            if (distTo[position(col, tmpHeight - 1)] < minimumEnergy) {
+                minimumEnergy = distTo[position(col, tmpHeight - 1)];
+                bottomSeam = col;
+            }
+        }
+
+        return verticalSeam(bottomSeam);
+    }
+
+    private int[] verticalSeam(int bottomSeam) {
+        int tmpHeight = energy.length;
+        int tmpWidth = energy[0].length;
+        int[] result = new int[tmpHeight];
+        result[tmpHeight - 1] = bottomSeam;
+
+        for (int y = tmpHeight - 1; y > 0; y--) {
+            result[y - 1] = pathTo[position(result[y], y)] % tmpWidth;
+        }
+        return result;
+    }
+
+    private void relax(int from, int colTo, int rowTo) {
+        if (distTo[position(colTo, rowTo)] > distTo[from] + energy[colTo][rowTo]) {
+            distTo[position(colTo, rowTo)] = distTo[from] + energy[colTo][rowTo];
+            pathTo[position(colTo, rowTo)] = from;
         }
     }
 
