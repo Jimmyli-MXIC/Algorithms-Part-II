@@ -50,7 +50,7 @@ public class PrintEnergy {
         }
         for (int i : sc.findVerticalSeam())
             StdOut.print(i + " ");
-        StdOut.print("/n");
+        StdOut.println();
         for (int i : sc.findHorizontalSeam())
             StdOut.print(i + " ");
     }

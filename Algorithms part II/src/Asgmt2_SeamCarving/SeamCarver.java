@@ -2,6 +2,7 @@ package Asgmt2_SeamCarving;
 
 import edu.princeton.cs.algs4.Picture;
 
+
 public class SeamCarver {
 
     private Picture picture;
@@ -15,6 +16,7 @@ public class SeamCarver {
      * @param picture
      */
     public SeamCarver(Picture picture) {
+        if (picture == null) throw new IllegalArgumentException("Expected non-null picture");
         this.picture = new Picture(picture);
     }
 
@@ -53,42 +55,27 @@ public class SeamCarver {
      * @return
      */
     public double energy(int x, int y) {
-        if ((x < 0 && x > width() - 1) || (y < 0 && y > height() - 1))
-            throw new IllegalArgumentException("x or y is outside its prescribed range");
-        return computeEnergy(x, y, false);
+        if (x < 0 || x > width() - 1 || y < 0 || y > height() - 1)
+            throw new IllegalArgumentException("Expected x in [0, width - 1] and y in [0, height - 1]");
+        return calculateEnergy(x, y, false);
 
     }
 
-    private double computeEnergy(int x, int y, boolean transposed) {
-        if (transposed)
-            return computeEnergy(y, x, false);
+    private double calculateEnergy(int x, int y, boolean transposed) {
+        if (transposed) {
+            return calculateEnergy(y, x, false);
+        }
 
         if (x == 0 || x == width() - 1 || y == 0 || y == height() - 1)
             return 1000.00;
 
-        int[] rgbL = extractRGB(picture.getRGB(x - 1, y));
-        int[] rgbR = extractRGB(picture.getRGB(x + 1, y));
-        int[] rgbU = extractRGB(picture.getRGB(x, y - 1));
-        int[] rgbD = extractRGB(picture.getRGB(x, y + 1));
-
-        double xSquare = 0.0, ySquare = 0.0;
-        for (int i = 0; i < 3; i++) {
-            xSquare += Math.pow(rgbL[i] - rgbR[i], 2);
-            ySquare += Math.pow(rgbU[i] - rgbD[i], 2);
+        double dx = 0, dy = 0;
+        for (int i = 16; i >= 0; i -= 8) {
+            dx += Math.pow(((picture.getRGB(x - 1, y) >> i) & 0xFF) - ((picture.getRGB(x + 1, y) >> i) & 0xFF), 2);
+            dy += Math.pow(((picture.getRGB(x, y - 1) >> i) & 0xFF) - ((picture.getRGB(x, y + 1) >> i) & 0xFF), 2);
         }
-        return Math.sqrt(xSquare + ySquare);
+        return Math.sqrt(dx + dy);
     }
-
-    private int[] extractRGB(int rgb) {
-
-        int[] arrayOfRGB = new int[3];
-        arrayOfRGB[0] = (rgb >> 16) & 0xFF;
-        arrayOfRGB[1] = (rgb >> 8) & 0xFF;
-        arrayOfRGB[2] = (rgb >> 0) & 0xFF;
-
-        return arrayOfRGB;
-    }
-
 
     /**
      * Sequence of indices for horizontal seam
@@ -97,17 +84,13 @@ public class SeamCarver {
      */
     public int[] findHorizontalSeam() {
 
-        energy = new double[height()][width()];
+        energy = new double[width()][height()];
         for (int row = 0; row < width(); row++)
             for (int col = 0; col < height(); col++)
-                energy[row][col] = computeEnergy(row, col, true);
+                energy[row][col] = calculateEnergy(col, row, true);
 
-        return getSeam();
+        return getPath();
 
-    }
-
-    private int position(int col, int row) {
-        return row * energy[0].length + col;
     }
 
     /**
@@ -120,37 +103,36 @@ public class SeamCarver {
         energy = new double[height()][width()];
         for (int row = 0; row < height(); row++)
             for (int col = 0; col < width(); col++)
-                energy[row][col] = computeEnergy(col, row, false);
+                energy[row][col] = calculateEnergy(col, row, false);
 
-        return getSeam();
+        return getPath();
 
 
     }
 
-    private int[] getSeam() {
-        int tmpHeight = energy.length;
-        int tmpWidth = energy[0].length;
-        int size = tmpHeight * tmpWidth;
+    private int[] getPath() {
+        int height = energy.length;
+        int width = energy[0].length;
+        int size = height * width;
 
-//        energy = new double[size];
         distTo = new double[size];
         pathTo = new int[size];
 
-        for (int row = 0; row < tmpHeight; row++) {
-            for (int col = 0; col < tmpWidth; col++) {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
                 int p = position(col, row);
 
                 if (row == 0)
                     distTo[p] = 1000.00;
                 else
                     distTo[p] = Double.POSITIVE_INFINITY;
-//                energy[p] = computeEnergy(col, row, transpose);
+
                 pathTo[p] = -1;
             }
         }
 
-        for (int row = 0; row < tmpHeight - 1; row++) {
-            for (int col = 1; col < tmpWidth - 1; col++) {
+        for (int row = 0; row < height - 1; row++) {
+            for (int col = 1; col < width - 1; col++) {
                 int p = position(col, row);
                 relax(p, col - 1, row + 1);
                 relax(p, col, row + 1);
@@ -158,35 +140,38 @@ public class SeamCarver {
             }
         }
 
-        double minimumEnergy = Double.POSITIVE_INFINITY;
         int bottomSeam = 0;
-        for (int col = 0; col < tmpWidth; col++) {
-            if (distTo[position(col, tmpHeight - 1)] < minimumEnergy) {
-                minimumEnergy = distTo[position(col, tmpHeight - 1)];
+        double minimumEnergy = Double.POSITIVE_INFINITY;
+
+        for (int col = 0; col < width; col++) {
+            if (distTo[position(col, height - 1)] < minimumEnergy) {
+                minimumEnergy = distTo[position(col, height - 1)];
                 bottomSeam = col;
             }
         }
 
-        return verticalSeam(bottomSeam);
+        return getSeam(height, width, bottomSeam);
     }
 
-    private int[] verticalSeam(int bottomSeam) {
-        int tmpHeight = energy.length;
-        int tmpWidth = energy[0].length;
-        int[] result = new int[tmpHeight];
-        result[tmpHeight - 1] = bottomSeam;
+    private void relax(int from, int colTo, int rowTo) {
+        if (distTo[position(colTo, rowTo)] > distTo[from] + energy[rowTo][colTo]) {
+            distTo[position(colTo, rowTo)] = distTo[from] + energy[rowTo][colTo];
+            pathTo[position(colTo, rowTo)] = from;
+        }
+    }
 
-        for (int y = tmpHeight - 1; y > 0; y--) {
-            result[y - 1] = pathTo[position(result[y], y)] % tmpWidth;
+    private int[] getSeam(int height, int width, int bottomSeam) {
+        int[] result = new int[height];
+        result[height - 1] = bottomSeam;
+
+        for (int y = height - 1; y > 0; y--) {
+            result[y - 1] = pathTo[position(result[y], y)] % width;
         }
         return result;
     }
 
-    private void relax(int from, int colTo, int rowTo) {
-        if (distTo[position(colTo, rowTo)] > distTo[from] + energy[colTo][rowTo]) {
-            distTo[position(colTo, rowTo)] = distTo[from] + energy[colTo][rowTo];
-            pathTo[position(colTo, rowTo)] = from;
-        }
+    private int position(int col, int row) {
+        return row * energy[0].length + col;
     }
 
 
@@ -197,6 +182,29 @@ public class SeamCarver {
      */
     public void removeHorizontalSeam(int[] seam) {
         //  TODO
+        if (seam == null) throw new IllegalArgumentException("Expected non-null seam");
+        if (seam.length != width()) throw new IllegalArgumentException("Expected seam with length " + height());
+
+        for (int i = 1; i < width(); i++)
+            if (Math.abs(seam[i] - seam[i - 1]) > 1)
+                throw new IllegalArgumentException(
+                        "Expected adjacent elements of seam with have a an absolute difference of most 1");
+
+        if (height() <= 1) throw new IllegalArgumentException("Cannot remove vertical seam on width <= 1");
+
+        Picture result = new Picture(width(), height() - 1);
+        for (int col = 0; col < width(); col++) {
+            for (int row = 0, k = 0; row < height(); row++) {
+                if (row != seam[col])
+                    result.setRGB(col, k++, picture.getRGB(col, row));
+            }
+        }
+        this.picture = result;
+
+        distTo = null;
+        energy = null;
+        pathTo = null;
+
     }
 
     /**
@@ -205,6 +213,28 @@ public class SeamCarver {
      * @param seam
      */
     public void removeVerticalSeam(int[] seam) {
-        //  TODO
+        if (seam == null) throw new IllegalArgumentException("Expected non-null seam");
+        if (seam.length != height()) throw new IllegalArgumentException("Expected seam with length " + height());
+
+        for (int i = 1; i < height(); i++)
+            if (Math.abs(seam[i] - seam[i - 1]) > 1)
+                throw new IllegalArgumentException(
+                        "Expected adjacent elements of seam with have a an absolute difference of most 1");
+
+        if (width() <= 1) throw new IllegalArgumentException("Cannot remove vertical seam on width <= 1");
+
+        Picture result = new Picture(width() - 1, height());
+        for (int row = 0; row < height(); row++) {
+            for (int col = 0, k = 0; col < width(); col++) {
+                if (col != seam[row])
+                    result.setRGB(k++, row, picture.getRGB(col, row));
+            }
+        }
+        this.picture = result;
+
+        distTo = null;
+        energy = null;
+        pathTo = null;
+
     }
 }
