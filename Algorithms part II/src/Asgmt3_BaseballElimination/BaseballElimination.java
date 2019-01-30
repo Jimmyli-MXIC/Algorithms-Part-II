@@ -85,24 +85,25 @@ public class BaseballElimination {
     }
 
     public boolean isEliminated(String team) {
-        validate(team);
-        int x = teamHashMap.get(team);
-        for (int i = 0; i < n; i++) {
-            if (wins[x] + remaining[x] - wins[i] < 0) {
-                return true;
-            }
-        }
-
-        int totalCapacity = 0;
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = i + 1; j < n; j++) {
-                if (i == x || j == x)
-                    continue;
-                totalCapacity += against[i][j];
-            }
-        }
-
-        return getMaxFlow(x).value() < totalCapacity;
+//        validate(team);
+//        int x = teamHashMap.get(team);
+//        for (int i = 0; i < n; i++) {
+//            if (wins[x] + remaining[x] - wins[i] < 0) {
+//                return true;
+//            }
+//        }
+//
+//        int totalCapacity = 0;
+//        for (int i = 0; i < n - 1; i++) {
+//            for (int j = i + 1; j < n; j++) {
+//                if (i == x || j == x)
+//                    continue;
+//                totalCapacity += against[i][j];
+//            }
+//        }
+//
+//        return getMaxFlow(x).value() < totalCapacity;
+        return certificateOfElimination(team) != null;
 
     }
 

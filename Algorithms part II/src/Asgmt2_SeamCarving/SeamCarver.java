@@ -181,7 +181,6 @@ public class SeamCarver {
      * @param seam
      */
     public void removeHorizontalSeam(int[] seam) {
-        //  TODO
         if (seam == null) throw new IllegalArgumentException("Expected non-null seam");
         if (seam.length != width()) throw new IllegalArgumentException("Expected seam with length " + height());
 

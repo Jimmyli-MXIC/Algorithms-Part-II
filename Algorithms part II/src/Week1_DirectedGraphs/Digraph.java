@@ -27,17 +27,15 @@ public class Digraph {
     }
 
     public int E(){
-        //  TODO
+
         return 0;
     }
 
     public Digraph reverse(){
-        //  TODO
         return null;
     }
 
     public String toString(){
-        //  TODO
         return null;
     }
 }
