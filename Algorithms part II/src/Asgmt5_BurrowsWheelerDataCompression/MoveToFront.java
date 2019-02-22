@@ -1,6 +1,8 @@
 package Asgmt5_BurrowsWheelerDataCompression;
 
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.StdIn;
+import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.SuffixArray;
 
 public class MoveToFront {
 
@@ -9,17 +11,17 @@ public class MoveToFront {
     /**
      * Apply move-to-front encoding, reading from standard input and writing a standard output.
      */
-    public static void transform() {
+    public static void encode() {
         char[] array = new char[R];
         for (int i = 0; i < R; i++) {
             array[i] = (char) i;
         }
 
         while (!StdIn.isEmpty()) {
-            char c = StdIn.readChar();
+            char in = StdIn.readChar();
             int out = 0;
             for (int i = 0; i < R; i++) {
-                if (array[i] == c) {
+                if (array[i] == in) {
                     out = i;
                     break;
                 }
@@ -28,27 +30,33 @@ public class MoveToFront {
             for (int i = out; i > 0; i--) {
                 array[i] = array[i - 1];
             }
-            array[0] = c;
-            StdOut.println(out);
+            array[0] = in;
+            StdOut.printf("%d ", out);
         }
-//        ST<Character, Integer> st = new ST<>();
-//        for (int i = 0; i < R; i++){
-//            st.put((char) i, i);
-//        }
-//
-//        while (!BinaryStdIn.isEmpty()){
-//            char c = BinaryStdIn.readChar();
-//            int out = st.get(c);
-//            StdOut.printf("%03x", out);
-//            st.put(c, 0);
-//            for (char tmp = 0; tmp < c;)
-//        }
+
     }
 
     /**
      * Apply move-to-front decoding, reading from standard input and writing a standard output.
      */
-    public static void inverseTransform() {
+    public static void decode() {
+        char[] array = new char[R];
+        for (int i = 0; i < R; i++) {
+            array[i] = (char) i;
+        }
+
+        while(!StdIn.isEmpty()){
+            int in = StdIn.readInt();
+            char out = array[in];
+
+            for (int i = in; i > 0; i--){
+                array[i] = array[i - 1];
+            }
+            array[0] = out;
+            StdOut.printf("%c", out);
+        }
+
+
     }
 
     /**
@@ -58,6 +66,16 @@ public class MoveToFront {
      * @param args
      */
     public static void main(String[] args) {
-        transform();
+//        if (args[0] == "-")
+//            encode();
+//        else if (args[0] == "+")
+//            decode();
+//        else
+//            return;
+        String s = "ABRACADABRA!";
+        SuffixArray suffixArray = new SuffixArray(s);
+        for (int i = 0; i < s.length(); i++){
+            StdOut.println(suffixArray.index(i));
+        }
     }
 }
