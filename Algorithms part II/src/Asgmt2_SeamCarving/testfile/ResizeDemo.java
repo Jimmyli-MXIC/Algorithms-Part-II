@@ -10,9 +10,8 @@ package Asgmt2_SeamCarving.testfile; /******************************************
  *
  ******************************************************************************/
 
-import Asgmt2_SeamCarving.SeamCarver;
-import Asgmt2_SeamCarving.SeamCarver2;
-import Asgmt2_SeamCarving.SeamCarver3;
+
+
 import edu.princeton.cs.algs4.Picture;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.Stopwatch;
@@ -27,27 +26,27 @@ public class ResizeDemo {
         Picture inputImg = new Picture(args[0]);
         int removeColumns = Integer.parseInt(args[1]);
         int removeRows = Integer.parseInt(args[2]);
-
-        StdOut.printf("image is %d columns by %d rows\n", inputImg.width(), inputImg.height());
-        SeamCarver3 sc = new SeamCarver3(inputImg);
-
-        Stopwatch sw = new Stopwatch();
-
-        for (int i = 0; i < removeRows; i++) {
-            int[] horizontalSeam = sc.findHorizontalSeam();
-            sc.removeHorizontalSeam(horizontalSeam);
-        }
-
-        for (int i = 0; i < removeColumns; i++) {
-            int[] verticalSeam = sc.findVerticalSeam();
-            sc.removeVerticalSeam(verticalSeam);
-        }
-        Picture outputImg = sc.picture();
-
-        StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());
-
-        StdOut.println("Resizing time: " + sw.elapsedTime() + " seconds.");
-        inputImg.show();
-        outputImg.show();
-    }
-}
+//
+//        StdOut.printf("image is %d columns by %d rows\n", inputImg.width(), inputImg.height());
+//        SeamCarver3 sc = new SeamCarver3(inputImg);
+//
+//        Stopwatch sw = new Stopwatch();
+//
+//        for (int i = 0; i < removeRows; i++) {
+//            int[] horizontalSeam = sc.findHorizontalSeam();
+//            sc.removeHorizontalSeam(horizontalSeam);
+//        }
+//
+//        for (int i = 0; i < removeColumns; i++) {
+//            int[] verticalSeam = sc.findVerticalSeam();
+//            sc.removeVerticalSeam(verticalSeam);
+//        }
+//        Picture outputImg = sc.picture();
+//
+//        StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());
+//
+//        StdOut.println("Resizing time: " + sw.elapsedTime() + " seconds.");
+//        inputImg.show();
+//        outputImg.show();
+//    }
+}}
